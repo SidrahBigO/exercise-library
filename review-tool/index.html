@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Exercise Review</title>
+<title>Exercise Filter — AICON</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -36,7 +36,24 @@ header {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   border-bottom: 1px solid var(--border);
 }
-.logo { font-size: 12px; font-weight: 700; color: var(--primary); letter-spacing: .06em; text-transform: uppercase; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-logo {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 9px;
+  background: var(--primary); flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(254,92,1,.3), 0 4px 12px rgba(254,92,1,.25);
+}
+.brand-logo svg { width: 18px; height: 18px; }
+.brand-text { display: flex; flex-direction: column; gap: 0px; }
+.brand-aicon {
+  font-size: 13px; font-weight: 700; color: var(--text);
+  letter-spacing: .08em; text-transform: uppercase; line-height: 1;
+}
+.brand-aicon span { color: var(--primary); }
+.brand-product {
+  font-size: 9px; font-weight: 600; color: var(--muted);
+  letter-spacing: .1em; text-transform: uppercase; line-height: 1; margin-top: 2px;
+}
 #counter { font-size: 12px; font-weight: 500; color: var(--muted); }
 .header-right { display: flex; align-items: center; gap: 6px; }
 #tally { display: flex; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: .03em; }
@@ -241,9 +258,18 @@ header {
 
 <div id="app">
   <header>
-    <div style="display:flex;align-items:center;gap:10px">
-      <span class="logo">Exercise Review</span>
-      <span id="counter">– of –</span>
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 6h4v12H4zM16 6h4v12h-4z" fill="white" opacity=".9"/>
+          <rect x="8" y="10.5" width="8" height="3" rx="1.5" fill="white"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-aicon">AI<span>CON</span></div>
+        <div class="brand-product">Exercise Filter</div>
+      </div>
+      <span id="counter" style="margin-left:4px">– of –</span>
     </div>
     <div class="header-right">
       <div id="tally">
@@ -316,7 +342,7 @@ async function boot() {
   } catch(e) {
     document.getElementById('loading').innerHTML =
       '<p style="color:#EF4444;padding:24px;text-align:center;font-family:Poppins,sans-serif;font-size:14px">' +
-      'Failed to load data. Make sure you\'re running from https://sidrahbigo.github.io/exercise-library/review-tool/ or a local server.</p>';
+      'Failed to load data. Open from https://sidrahbigo.github.io/exercise-library/review-tool/ or a local server.</p>';
     return;
   }
 
