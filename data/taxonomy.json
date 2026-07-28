@@ -20,7 +20,11 @@
         { "id": "boxing", "value": "Boxing" },
         { "id": "soccer", "value": "Soccer" },
         { "id": "tennis", "value": "Tennis" },
-        { "id": "golf", "value": "Golf" }
+        { "id": "golf", "value": "Golf" },
+        { "id": "swimming", "value": "Swimming" },
+        { "id": "rowing", "value": "Rowing" },
+        { "id": "volleyball", "value": "Volleyball" },
+        { "id": "rugby", "value": "Rugby" }
       ]
     },
     "position": {
