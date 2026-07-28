@@ -404,7 +404,10 @@ let retryTimer     = null;
 let pendingWrite   = false;
 
 /* ══════════════════════ INTRO ══════════════════════ */
-async function runIntro(total) {
+async function runIntro(remaining, total) {
+  const returning = remaining < total;
+  document.getElementById('ih').textContent = returning ? 'Welcome back' : "Let's sort the exercises";
+
   // stagger in
   await delay(100);
   document.getElementById('ih').classList.add('in');
@@ -414,11 +417,11 @@ async function runIntro(total) {
   document.getElementById('icl').classList.add('in');
   document.getElementById('ibw').classList.add('in');
 
-  // count up
-  await countUp('ic', total, 900);
+  // count up to remaining (not total)
+  await countUp('ic', remaining, 900);
 
-  // progress bar fills
-  document.getElementById('ib').style.width = '100%';
+  // progress bar shows how much is left
+  document.getElementById('ib').style.width = (remaining / total * 100) + '%';
   await delay(1000);
 
   // fade out
@@ -463,7 +466,8 @@ async function boot() {
   if (!ghLoaded) loadState(); // only fall back to localStorage when GitHub is unreachable
 
   // run the preloader while data is ready, then show app
-  await runIntro(exercises.length);
+  const remaining = exercises.length - state.index;
+  await runIntro(remaining, exercises.length);
 
   state.index >= exercises.length ? showDone() : renderCard();
   updateTally();
