@@ -29,7 +29,6 @@ html, body {
   overflow: hidden; -webkit-tap-highlight-color: transparent;
 }
 
-/* ── LAYOUT ── */
 #app { height: 100dvh; display: flex; flex-direction: column; }
 
 header {
@@ -39,11 +38,26 @@ header {
 }
 .logo { font-size: 12px; font-weight: 700; color: var(--primary); letter-spacing: .06em; text-transform: uppercase; }
 #counter { font-size: 12px; font-weight: 500; color: var(--muted); }
-
 .header-right { display: flex; align-items: center; gap: 6px; }
-
 #tally { display: flex; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: .03em; }
 .ta { color: var(--approve); } .tr { color: var(--reject); } .tp { color: var(--muted); }
+
+/* sync pill */
+#sync-pill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: var(--r-badge);
+  font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  border: 1px solid var(--border); background: var(--surface-alt); color: var(--muted);
+  transition: all .3s;
+}
+#sync-pill.syncing { border-color: var(--primary); color: var(--primary); background: rgba(254,92,1,.08); }
+#sync-pill.synced  { border-color: var(--approve); color: var(--approve); background: rgba(34,197,94,.08); }
+#sync-pill.offline { border-color: var(--reject);  color: var(--reject);  background: rgba(239,68,68,.08); }
+.sync-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0;
+}
+.sync-dot.pulse { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
 
 .icon-btn {
   width: 32px; height: 32px; border-radius: var(--r-md); border: 1px solid var(--border);
@@ -54,27 +68,25 @@ header {
 .icon-btn:hover { background: var(--border); color: var(--text); }
 .icon-btn svg { width: 15px; height: 15px; }
 
-/* ── ARENA ── */
+/* arena */
 #arena {
   flex: 1; position: relative; overflow: hidden;
   display: flex; align-items: flex-start; justify-content: center;
   padding: 12px 12px 0; min-height: 0;
 }
-
 .ghost {
   position: absolute; left: 50%; width: min(420px, calc(100vw - 24px));
   border-radius: var(--r-card); background: var(--surface); border: 1px solid var(--border);
   pointer-events: none;
 }
-.ghost:nth-child(1) { bottom: 4px;  height: 36px; opacity: .3;  transform: translateX(-50%) scale(.955); }
-.ghost:nth-child(2) { bottom: 0px;  height: 36px; opacity: .55; transform: translateX(-50%) scale(.977); }
-
+.ghost:nth-child(1) { bottom: 4px; height: 36px; opacity: .3;  transform: translateX(-50%) scale(.955); }
+.ghost:nth-child(2) { bottom: 0px; height: 36px; opacity: .55; transform: translateX(-50%) scale(.977); }
 #card-wrap {
   position: absolute; inset: 12px 12px 0;
   display: flex; align-items: flex-start; justify-content: center;
 }
 
-/* ── CARD ── */
+/* card */
 .card {
   width: min(420px, 100%); max-height: 100%;
   background: var(--surface); border: 1px solid var(--border);
@@ -84,30 +96,25 @@ header {
   cursor: grab; position: relative;
 }
 .card:active { cursor: grabbing; }
-
 .ov {
   position: absolute; inset: 0; border-radius: var(--r-card);
   display: flex; align-items: center; justify-content: center;
   font-size: 24px; font-weight: 700; letter-spacing: .04em;
-  opacity: 0; pointer-events: none; transition: opacity .04s;
+  opacity: 0; pointer-events: none; transition: opacity .04s; z-index: 10;
 }
-.ov-a { background: rgba(34,197,94,.13);  color: var(--approve); border: 3px solid var(--approve); }
-.ov-r { background: rgba(239,68,68,.13);  color: var(--reject);  border: 3px solid var(--reject);  }
+.ov-a { background: rgba(34,197,94,.13); color: var(--approve); border: 3px solid var(--approve); }
+.ov-r { background: rgba(239,68,68,.13); color: var(--reject);  border: 3px solid var(--reject); }
 
 .card-scroll { overflow-y: auto; flex: 1; padding: 18px 16px 16px; -webkit-overflow-scrolling: touch; }
-
 .card-name { font-size: 17px; font-weight: 700; line-height: 1.25; margin-bottom: 6px; }
 .card-desc { font-size: 12.5px; color: var(--muted); line-height: 1.6; margin-bottom: 14px; }
-
 .muscles { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 15px; }
 .mc {
   font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
   background: var(--surface-alt); color: var(--muted); border: 1px solid var(--border);
   padding: 2px 8px; border-radius: var(--r-badge);
 }
-
 .divider { height: 1px; background: var(--border); margin: 2px 0 14px; }
-
 .tx-section { margin-bottom: 13px; }
 .tx-label {
   display: block; font-size: 10px; font-weight: 700; text-transform: uppercase;
@@ -115,7 +122,6 @@ header {
 }
 .tx-helper { font-size: 10px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
 .na { font-size: 12px; color: var(--muted); font-style: italic; }
-
 .chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
   padding: 5px 11px; border-radius: var(--r-badge); font-size: 11.5px; font-weight: 600;
@@ -124,7 +130,6 @@ header {
 }
 .chip.on { border-color: var(--primary); background: rgba(254,92,1,.12); color: var(--text); }
 .chip.flag-chip.on { border-color: var(--reject); background: rgba(239,68,68,.12); color: var(--reject); }
-
 .sel {
   width: 100%; padding: 9px 34px 9px 12px; border-radius: var(--r-md);
   background: var(--surface-alt); border: 1.5px solid var(--border);
@@ -134,7 +139,6 @@ header {
   background-repeat: no-repeat; background-position: right 12px center;
 }
 .sel:focus { outline: none; border-color: var(--primary); }
-
 .flags-btn {
   display: flex; align-items: center; gap: 7px; background: none; border: none;
   color: var(--muted); font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 700;
@@ -146,7 +150,7 @@ header {
 .flags-body { display: none; margin-top: 9px; }
 .flags-body.open { display: block; }
 
-/* ── ACTIONS ── */
+/* actions */
 #actions {
   flex-shrink: 0; padding: 12px 16px 18px;
   display: flex; align-items: center; justify-content: center; gap: 24px;
@@ -155,7 +159,7 @@ header {
 .act-btn {
   width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px; transition: transform .12s, box-shadow .12s;
+  font-size: 22px; transition: transform .12s;
 }
 .act-btn:active { transform: scale(.88); }
 .btn-x  { background: rgba(239,68,68,.13); box-shadow: 0 0 0 1.5px var(--reject); }
@@ -163,7 +167,7 @@ header {
 .btn-ok { background: rgba(34,197,94,.13);  box-shadow: 0 0 0 1.5px var(--approve); }
 .btn-ok:hover { background: rgba(34,197,94,.22); }
 
-/* ── SCREENS ── */
+/* screens */
 .screen {
   position: fixed; inset: 0; background: var(--bg);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -173,12 +177,10 @@ header {
 .screen-emoji { font-size: 52px; line-height: 1; }
 .screen h1 { font-size: 24px; font-weight: 700; }
 .screen p { font-size: 13px; color: var(--muted); line-height: 1.65; max-width: 300px; }
-
 .big-nums { display: flex; gap: 36px; margin: 6px 0; }
 .big-nums .a { color: var(--approve); font-size: 30px; font-weight: 700; }
 .big-nums .r { color: var(--reject);  font-size: 30px; font-weight: 700; }
 .big-nums span { font-size: 13px; font-weight: 500; color: var(--muted); display: block; margin-top: 2px; }
-
 .btn-p {
   padding: 14px 28px; border-radius: var(--r-btn); background: var(--primary);
   color: #fff; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 700;
@@ -198,7 +200,6 @@ header {
 }
 .btn-d:hover { background: rgba(239,68,68,.07); }
 
-/* loading */
 #loading {
   position: fixed; inset: 0; background: var(--bg);
   display: flex; align-items: center; justify-content: center; z-index: 400;
@@ -209,7 +210,6 @@ header {
 }
 @keyframes rot { to { transform: rotate(360deg); } }
 
-/* modal */
 #modal {
   position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 300;
   display: flex; align-items: flex-end; justify-content: center;
@@ -221,28 +221,24 @@ header {
   width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 10px;
 }
 .modal-sheet h2 { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
-.modal-sheet p { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 6px; }
+.modal-sheet p  { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 6px; }
 </style>
 </head>
 <body>
 
-<!-- Loading -->
 <div id="loading"><div class="spin"></div></div>
 
-<!-- Done screen -->
 <div id="done-screen" class="screen off">
   <div class="screen-emoji">🎉</div>
   <h1>All Done!</h1>
-  <p>Every exercise has been reviewed. Export your results below.</p>
+  <p>Every exercise has been reviewed and synced to GitHub.</p>
   <div class="big-nums">
     <div class="a"><div id="dn-a">0</div><span>Approved</span></div>
     <div class="r"><div id="dn-r">0</div><span>Rejected</span></div>
   </div>
-  <button class="btn-p" onclick="exportResults()">Export Results</button>
   <button class="btn-d" onclick="confirmReset()">Reset All Progress</button>
 </div>
 
-<!-- Main -->
 <div id="app">
   <header>
     <div style="display:flex;align-items:center;gap:10px">
@@ -255,9 +251,10 @@ header {
         <span class="tr" id="t-r">0✗</span>
         <span class="tp" id="t-p">0–</span>
       </div>
-      <button class="icon-btn" onclick="exportResults()" title="Export">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      </button>
+      <div id="sync-pill">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-label">Idle</span>
+      </div>
       <button class="icon-btn" onclick="confirmReset()" title="Reset">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.41"/></svg>
       </button>
@@ -276,22 +273,38 @@ header {
   </div>
 </div>
 
-<!-- Reset modal -->
 <div id="modal" class="off">
   <div class="modal-sheet">
     <h2>Reset all progress?</h2>
-    <p>Every decision will be wiped. This cannot be undone.</p>
-    <button class="btn-d" onclick="doReset()">Yes, reset everything</button>
+    <p>Every decision will be wiped locally. GitHub already has everything synced — this only clears your local session.</p>
+    <button class="btn-d" onclick="doReset()">Yes, reset</button>
     <button class="btn-g" onclick="closeModal()">Cancel</button>
   </div>
 </div>
 
 <script>
-const LS_KEY = 'ex-review-v2';
+// Fine-grained PAT scoped to SidrahBigO/exercise-library (Contents: read+write).
+// Short-lived — revoke and rotate this token once Josh finishes reviewing.
+const GITHUB_TOKEN = 'YOUR_TOKEN_HERE';
+
+const REPO_OWNER   = 'SidrahBigO';
+const REPO_NAME    = 'exercise-library';
+const RESULTS_PATH = 'data/reviewed-exercises.json';
+const API_BASE     = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${RESULTS_PATH}`;
+
+const LS_KEY = 'ex-review-v3';
 let exercises = [], taxonomy = {};
 let state = { index: 0, decisions: {} };
 
-/* ── BOOT ── */
+// GitHub write coordination
+let debounceTimer   = null;
+let currentFileSha  = null;   // sha of last known reviewed-exercises.json on GitHub
+let retryTimer      = null;
+let pendingWrite    = false;  // a write is in the 8s debounce window or queued for retry
+
+/* ════════════════════════════════════════
+   BOOT
+════════════════════════════════════════ */
 async function boot() {
   try {
     const [eRes, tRes] = await Promise.all([
@@ -303,124 +316,258 @@ async function boot() {
   } catch(e) {
     document.getElementById('loading').innerHTML =
       '<p style="color:#EF4444;padding:24px;text-align:center;font-family:Poppins,sans-serif;font-size:14px">' +
-      'Failed to load data.<br>Serve this folder with a local server:<br><code>npx serve .</code></p>';
+      'Failed to load data. Make sure you\'re running from https://sidrahbigo.github.io/exercise-library/review-tool/ or a local server.</p>';
     return;
   }
-  loadState();
+
+  // Pull current sha and any existing decisions from GitHub on load
+  await loadFromGitHub();
+  loadState();  // local overwrites (more recent)
+
   document.getElementById('loading').style.display = 'none';
   state.index >= exercises.length ? showDone() : renderCard();
   updateTally();
 }
 
-/* ── PERSIST ── */
+/* ════════════════════════════════════════
+   LOCAL PERSISTENCE
+════════════════════════════════════════ */
 function loadState() {
-  try { const s = JSON.parse(localStorage.getItem(LS_KEY)); if (s?.decisions) state = s; } catch(_) {}
+  try {
+    const s = JSON.parse(localStorage.getItem(LS_KEY));
+    if (s?.decisions) {
+      // merge: local decisions win over github (local is more recent)
+      state.decisions = { ...state.decisions, ...s.decisions };
+      state.index     = s.index ?? state.index;
+    }
+  } catch(_) {}
 }
 function saveState() { localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 
-/* ── TALLY ── */
-function updateTally() {
-  const vals = Object.values(state.decisions);
-  const a = vals.filter(d => d.verdict === 'approve').length;
-  const r = vals.filter(d => d.verdict === 'reject').length;
-  const p = exercises.length - a - r;
-  document.getElementById('t-a').textContent = a + '✓';
-  document.getElementById('t-r').textContent = r + '✗';
-  document.getElementById('t-p').textContent = p + '–';
-  const idx = Math.min(state.index, exercises.length);
-  document.getElementById('counter').textContent = idx + ' of ' + exercises.length;
-  document.getElementById('dn-a').textContent = a;
-  document.getElementById('dn-r').textContent = r;
+/* ════════════════════════════════════════
+   GITHUB SYNC
+════════════════════════════════════════ */
+async function loadFromGitHub() {
+  if (!GITHUB_TOKEN || GITHUB_TOKEN === 'YOUR_TOKEN_HERE') return;
+  try {
+    const res = await fetch(API_BASE, {
+      headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' }
+    });
+    if (res.status === 404) return; // file doesn't exist yet — first run
+    if (!res.ok) return;
+    const data = await res.json();
+    currentFileSha = data.sha;
+    const content  = JSON.parse(atob(data.content.replace(/\n/g, '')));
+    // populate state.decisions from existing file (local swipes will overwrite below)
+    for (const ex of (content.approved || [])) {
+      if (!state.decisions[ex.id])
+        state.decisions[ex.id] = { verdict: 'approve', confirmed: ex.taxonomy || {} };
+    }
+    for (const ex of (content.rejected || [])) {
+      if (!state.decisions[ex.id])
+        state.decisions[ex.id] = { verdict: 'reject', confirmed: ex.taxonomy || {} };
+    }
+    // advance index past already-decided exercises
+    let maxIdx = 0;
+    exercises.forEach((ex, i) => { if (state.decisions[ex.id]) maxIdx = i + 1; });
+    state.index = Math.max(state.index, maxIdx);
+    setSyncStatus('synced', 'Synced');
+  } catch(_) {
+    setSyncStatus('offline', 'Offline');
+  }
 }
 
-/* ── RENDER ── */
+function scheduleWrite() {
+  pendingWrite = true;
+  setSyncStatus('syncing', 'Pending…');
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(commitToGitHub, 8000);
+}
+
+async function commitToGitHub() {
+  if (!GITHUB_TOKEN || GITHUB_TOKEN === 'YOUR_TOKEN_HERE') return;
+  clearTimeout(retryTimer);
+  setSyncStatus('syncing', 'Syncing…');
+
+  const approved = [], rejected = [];
+  for (const ex of exercises) {
+    const d = state.decisions[ex.id];
+    if (!d) continue;
+    const full = buildFullEntry(ex, d);
+    (d.verdict === 'approve' ? approved : rejected).push(full);
+  }
+
+  const now     = new Date().toISOString();
+  const payload = { last_synced: now, approved, rejected };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+  const msg     = `sync: ${approved.length} approved, ${rejected.length} rejected as of ${now}`;
+
+  const body = { message: msg, content: encoded };
+  if (currentFileSha) body.sha = currentFileSha;
+
+  try {
+    const res = await fetch(API_BASE, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (res.status === 409) {
+      // sha conflict — re-fetch sha and retry immediately
+      await refreshSha();
+      await commitToGitHub();
+      return;
+    }
+
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    currentFileSha = data.content.sha;
+    pendingWrite   = false;
+    setSyncStatus('synced', 'Synced');
+  } catch(e) {
+    setSyncStatus('offline', 'Offline, retrying…');
+    // retry in 30s
+    retryTimer = setTimeout(commitToGitHub, 30000);
+  }
+}
+
+async function refreshSha() {
+  try {
+    const res = await fetch(API_BASE, {
+      headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' }
+    });
+    if (res.ok) { const d = await res.json(); currentFileSha = d.sha; }
+  } catch(_) {}
+}
+
+function buildFullEntry(ex, d) {
+  const c = d.confirmed || {};
+  return {
+    ...ex,
+    review_status: d.verdict === 'approve' ? 'approved' : 'rejected',
+    reviewed_at: d.reviewed_at || new Date().toISOString(),
+    taxonomy: {
+      ...ex.taxonomy,
+      age_bands_confirmed:      c.age_bands_confirmed      ?? null,
+      sports_confirmed:         c.sports_confirmed         ?? null,
+      position_confirmed:       c.position_confirmed       ?? null,
+      movement_type_confirmed:  c.movement_type            ?? null,
+      difficulty_confirmed:     c.difficulty               ?? null,
+      structure_confirmed:      c.structure                ?? null,
+      safety_flags:             c.safety_flags             ?? []
+    }
+  };
+}
+
+function setSyncStatus(state, label) {
+  const pill = document.getElementById('sync-pill');
+  const dot  = document.getElementById('sync-dot');
+  const lbl  = document.getElementById('sync-label');
+  pill.className = 'sync-' + state; // CSS classes: sync-syncing, sync-synced, sync-offline
+  // map to pill class names
+  pill.className = state === 'syncing' ? 'syncing' : state === 'synced' ? 'synced' : 'offline';
+  pill.id = 'sync-pill'; // keep id after className wipe
+  lbl.textContent = label;
+  dot.className   = 'sync-dot' + (state === 'syncing' ? ' pulse' : '');
+}
+
+/* ════════════════════════════════════════
+   TALLY
+════════════════════════════════════════ */
+function updateTally() {
+  const vals = Object.values(state.decisions);
+  const a    = vals.filter(d => d.verdict === 'approve').length;
+  const r    = vals.filter(d => d.verdict === 'reject').length;
+  const p    = exercises.length - a - r;
+  document.getElementById('t-a').textContent      = a + '✓';
+  document.getElementById('t-r').textContent      = r + '✗';
+  document.getElementById('t-p').textContent      = p + '–';
+  document.getElementById('counter').textContent  = Math.min(state.index + 1, exercises.length) + ' of ' + exercises.length;
+  document.getElementById('dn-a').textContent     = a;
+  document.getElementById('dn-r').textContent     = r;
+}
+
+/* ════════════════════════════════════════
+   RENDER CARD
+════════════════════════════════════════ */
 function renderCard() {
   if (state.index >= exercises.length) { showDone(); return; }
-  const ex = exercises[state.index];
-  const tx = ex.taxonomy || {};
+  const ex   = exercises[state.index];
+  const tx   = ex.taxonomy || {};
   const wrap = document.getElementById('card-wrap');
   wrap.innerHTML = '';
 
   const card = document.createElement('div');
   card.className = 'card';
 
-  /* overlays */
   const ovA = document.createElement('div'); ovA.className = 'ov ov-a'; ovA.id = 'ov-a'; ovA.textContent = 'APPROVE ✓';
   const ovR = document.createElement('div'); ovR.className = 'ov ov-r'; ovR.id = 'ov-r'; ovR.textContent = 'REJECT ✗';
   card.appendChild(ovA); card.appendChild(ovR);
 
-  /* scrollable body */
   const scroll = document.createElement('div');
   scroll.className = 'card-scroll';
 
-  /* name + desc */
   const name = document.createElement('div'); name.className = 'card-name'; name.textContent = ex.name;
   const desc = document.createElement('div'); desc.className = 'card-desc'; desc.textContent = ex.description || '';
   scroll.appendChild(name); scroll.appendChild(desc);
 
-  /* muscles */
   const allMuscles = [...(ex.primary_muscles||[]), ...(ex.secondary_muscles||[])].slice(0, 7);
   if (allMuscles.length) {
     const mrow = document.createElement('div'); mrow.className = 'muscles';
     allMuscles.forEach(m => {
       const c = document.createElement('span'); c.className = 'mc';
-      c.textContent = m.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+      c.textContent = m.replace(/_/g,' ').replace(/\b\w/g, ch => ch.toUpperCase());
       mrow.appendChild(c);
     });
     scroll.appendChild(mrow);
   }
 
-  const div = document.createElement('div'); div.className = 'divider'; scroll.appendChild(div);
+  scroll.appendChild(Object.assign(document.createElement('div'), { className: 'divider' }));
 
-  /* AGE BANDS */
+  // Age Bands
   scroll.appendChild(txSection('Age Bands', () => {
     const sel = tx.age_bands_suggested || [];
     const grp = chipGroup('bands', taxonomy.age_bands.values.map(b => ({ id: b.id, label: b.value, on: sel.includes(b.id) })));
     const helper = document.createElement('div'); helper.className = 'tx-helper';
     helper.textContent = 'No chips selected = works for everyone, all ages.';
-    const wrap = document.createDocumentFragment();
-    wrap.appendChild(grp); wrap.appendChild(helper);
-    return wrap;
+    const frag = document.createDocumentFragment();
+    frag.appendChild(grp); frag.appendChild(helper);
+    return frag;
   }));
 
-  /* SPORTS */
+  // Sports
   scroll.appendChild(txSection('Sports', () => {
     const sel = tx.sports_suggested || [];
-    return chipGroup('sports', taxonomy.sport.values
-      .filter(s => s.id !== 'general')
-      .map(s => ({ id: s.id, label: s.value, on: sel.includes(s.id) })));
+    return chipGroup('sports', taxonomy.sport.values.filter(s => s.id !== 'general').map(s => ({ id: s.id, label: s.value, on: sel.includes(s.id) })));
   }));
 
-  /* POSITION */
+  // Position (deferred)
   scroll.appendChild(txSection('Position', () => {
     const el = document.createElement('span'); el.className = 'na';
     el.textContent = 'N/A — position lists deferred';
     return el;
   }));
 
-  /* DROPDOWNS */
+  // Dropdowns
   scroll.appendChild(txSection('Movement Type', () => mkSel('mt', taxonomy.movement_type.values, tx.movement_type)));
   scroll.appendChild(txSection('Difficulty',    () => mkSel('df', taxonomy.difficulty.values,    tx.difficulty)));
   scroll.appendChild(txSection('Structure',     () => mkSel('st', taxonomy.structure.values,     tx.structure)));
 
-  /* SAFETY FLAGS */
+  // Safety flags (collapsed)
   const flagsWrap = document.createElement('div'); flagsWrap.className = 'tx-section';
-  const flagBtn = document.createElement('button'); flagBtn.className = 'flags-btn';
-  flagBtn.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>
-    </svg>
+  const flagBtn   = document.createElement('button'); flagBtn.className = 'flags-btn';
+  flagBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
     Flag a concern
     <svg class="arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
   const flagBody = document.createElement('div'); flagBody.className = 'flags-body';
   flagBody.appendChild(chipGroup('flags', taxonomy.safety_flags.values.map(f => ({ id: f.id, label: f.value, on: false, cls: 'flag-chip' }))));
-  flagBtn.addEventListener('click', () => {
-    flagBtn.classList.toggle('open');
-    flagBody.classList.toggle('open');
-  });
+  flagBtn.addEventListener('click', () => { flagBtn.classList.toggle('open'); flagBody.classList.toggle('open'); });
   flagsWrap.appendChild(flagBtn); flagsWrap.appendChild(flagBody);
   scroll.appendChild(flagsWrap);
-
   scroll.appendChild(Object.assign(document.createElement('div'), { style: 'height:10px' }));
 
   card.appendChild(scroll);
@@ -428,23 +575,20 @@ function renderCard() {
   setupDrag(card);
 }
 
-/* helpers */
 function txSection(label, contentFn) {
   const sec = document.createElement('div'); sec.className = 'tx-section';
   const lbl = document.createElement('span'); lbl.className = 'tx-label'; lbl.textContent = label;
   sec.appendChild(lbl);
   const content = contentFn();
-  if (content instanceof DocumentFragment) sec.appendChild(content);
-  else sec.appendChild(content);
+  sec.appendChild(content);
   return sec;
 }
 
 function chipGroup(group, items) {
-  const grp = document.createElement('div'); grp.className = 'chip-group';
-  grp.dataset.group = group;
+  const grp = document.createElement('div'); grp.className = 'chip-group'; grp.dataset.group = group;
   items.forEach(item => {
-    const c = document.createElement('div'); c.className = 'chip' + (item.cls ? ' ' + item.cls : '');
-    if (item.on) c.classList.add('on');
+    const c = document.createElement('div');
+    c.className = 'chip' + (item.cls ? ' ' + item.cls : '') + (item.on ? ' on' : '');
     c.dataset.val = item.id; c.dataset.group = group;
     c.textContent = item.label;
     c.addEventListener('click', () => c.classList.toggle('on'));
@@ -456,30 +600,30 @@ function chipGroup(group, items) {
 function mkSel(id, values, current) {
   const s = document.createElement('select'); s.className = 'sel'; s.id = 'sel-' + id;
   values.forEach(v => {
-    const o = document.createElement('option'); o.value = v.id;
-    o.textContent = v.value;
+    const o = document.createElement('option'); o.value = v.id; o.textContent = v.value;
     if (v.id === current) o.selected = true;
     s.appendChild(o);
   });
   return s;
 }
 
-/* collect state from DOM */
 function collect() {
   const chips = g => [...document.querySelectorAll(`[data-group="${g}"].on`)].map(c => c.dataset.val);
   const sel   = id => { const el = document.getElementById('sel-' + id); return el?.value ?? null; };
   return {
-    age_bands_confirmed:  chips('bands'),
-    sports_confirmed:     chips('sports'),
-    position_confirmed:   null,
-    movement_type:        sel('mt'),
-    difficulty:           sel('df'),
-    structure:            sel('st'),
-    safety_flags:         chips('flags')
+    age_bands_confirmed: chips('bands'),
+    sports_confirmed:    chips('sports'),
+    position_confirmed:  null,
+    movement_type:       sel('mt'),
+    difficulty:          sel('df'),
+    structure:           sel('st'),
+    safety_flags:        chips('flags')
   };
 }
 
-/* ── SWIPE ── */
+/* ════════════════════════════════════════
+   SWIPE
+════════════════════════════════════════ */
 function swipe(verdict) {
   const card = document.querySelector('.card');
   if (!card || card.dataset.going) return;
@@ -487,11 +631,12 @@ function swipe(verdict) {
 
   const confirmed = collect();
   const ex = exercises[state.index];
-  state.decisions[ex.id] = { verdict, confirmed };
+  state.decisions[ex.id] = { verdict, confirmed, reviewed_at: new Date().toISOString() };
   state.index++;
   saveState();
+  scheduleWrite();   // debounced GitHub commit
 
-  const dx = verdict === 'approve' ? 620 : -620;
+  const dx  = verdict === 'approve' ? 620 : -620;
   const rot = verdict === 'approve' ? 20 : -20;
   card.style.transition = 'transform .34s cubic-bezier(.25,.46,.45,.94), opacity .34s';
   card.style.transform  = `translateX(${dx}px) rotate(${rot}deg)`;
@@ -500,7 +645,9 @@ function swipe(verdict) {
   setTimeout(() => { renderCard(); updateTally(); }, 350);
 }
 
-/* ── DRAG ── */
+/* ════════════════════════════════════════
+   DRAG
+════════════════════════════════════════ */
 function setupDrag(card) {
   let sx = 0, sy = 0, cx = 0, cy = 0, active = false;
 
@@ -511,22 +658,19 @@ function setupDrag(card) {
     sx = pt.clientX; sy = pt.clientY; cx = 0; cy = 0;
     card.style.transition = 'none';
   }
-
   function move(e) {
     if (!active) return;
     e.preventDefault();
     const pt = e.touches ? e.touches[0] : e;
     cx = pt.clientX - sx; cy = pt.clientY - sy;
-    const rot = cx * 0.055;
-    card.style.transform = `translateX(${cx}px) translateY(${cy * .15}px) rotate(${rot}deg)`;
+    card.style.transform = `translateX(${cx}px) translateY(${cy * .15}px) rotate(${cx * .055}deg)`;
     const ratio = Math.min(Math.abs(cx) / 90, 1);
     const ovA = document.getElementById('ov-a');
     const ovR = document.getElementById('ov-r');
     if (cx > 15)       { ovA.style.opacity = ratio; ovR.style.opacity = 0; }
     else if (cx < -15) { ovR.style.opacity = ratio; ovA.style.opacity = 0; }
-    else               { ovA.style.opacity = 0; ovR.style.opacity = 0; }
+    else               { ovA.style.opacity = 0;     ovR.style.opacity = 0; }
   }
-
   function end() {
     if (!active) return; active = false;
     const ovA = document.getElementById('ov-a');
@@ -549,39 +693,22 @@ function setupDrag(card) {
   window.addEventListener('mouseup',   end);
 }
 
-/* ── KEYBOARD ── */
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') swipe('approve');
   if (e.key === 'ArrowLeft')  swipe('reject');
 });
 
-/* ── DONE ── */
+/* ════════════════════════════════════════
+   DONE / RESET
+════════════════════════════════════════ */
 function showDone() {
   document.getElementById('done-screen').classList.remove('off');
   document.getElementById('app').style.visibility = 'hidden';
   updateTally();
+  // flush any pending write immediately when done
+  if (pendingWrite) { clearTimeout(debounceTimer); commitToGitHub(); }
 }
 
-/* ── EXPORT ── */
-function exportResults() {
-  const approved = [], rejected = [];
-  for (const ex of exercises) {
-    const d = state.decisions[ex.id];
-    if (!d) continue;
-    const full = { ...ex, taxonomy: { ...ex.taxonomy, ...d.confirmed } };
-    (d.verdict === 'approve' ? approved : rejected).push(full);
-  }
-  dl('approved.json', JSON.stringify(approved, null, 2));
-  dl('rejected.json', JSON.stringify(rejected, null, 2));
-}
-
-function dl(name, data) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
-  a.download = name; a.click();
-}
-
-/* ── RESET ── */
 function confirmReset() { document.getElementById('modal').classList.remove('off'); }
 function closeModal()    { document.getElementById('modal').classList.add('off'); }
 function doReset() {
