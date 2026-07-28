@@ -459,8 +459,8 @@ async function boot() {
     return;
   }
 
-  await loadFromGitHub();
-  loadState();
+  const ghLoaded = await loadFromGitHub();
+  if (!ghLoaded) loadState(); // only fall back to localStorage when GitHub is unreachable
 
   // run the preloader while data is ready, then show app
   await runIntro(exercises.length);
@@ -484,25 +484,29 @@ function saveState() { localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 
 /* ══════════════════════ GITHUB ══════════════════════ */
 async function loadFromGitHub() {
-  if (!GITHUB_TOKEN) return;
+  if (!GITHUB_TOKEN) return false;
   try {
     const res = await fetch(API_BASE, {
       headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' }
     });
-    if (res.status === 404) return;
-    if (!res.ok) return;
-    const data    = await res.json();
+    if (res.status === 404) { setSyncStatus('synced', 'Synced'); return true; } // file not yet created = fresh start
+    if (!res.ok) return false;
+    const data     = await res.json();
     currentFileSha = data.sha;
     const content  = JSON.parse(atob(data.content.replace(/\n/g, '')));
+    // GitHub is always authoritative — wipe local and rebuild from GitHub
+    state.decisions = {};
     for (const ex of (content.approved || []))
-      if (!state.decisions[ex.id]) state.decisions[ex.id] = { verdict: 'approve', confirmed: ex.taxonomy || {} };
+      state.decisions[ex.id] = { verdict: 'approve', confirmed: ex.taxonomy || {} };
     for (const ex of (content.rejected || []))
-      if (!state.decisions[ex.id]) state.decisions[ex.id] = { verdict: 'reject', confirmed: ex.taxonomy || {} };
+      state.decisions[ex.id] = { verdict: 'reject', confirmed: ex.taxonomy || {} };
     let maxIdx = 0;
     exercises.forEach((ex, i) => { if (state.decisions[ex.id]) maxIdx = i + 1; });
-    state.index = Math.max(state.index, maxIdx);
+    state.index = maxIdx;
+    saveState();
     setSyncStatus('synced', 'Synced');
-  } catch(_) { setSyncStatus('offline', 'Offline'); }
+    return true;
+  } catch(_) { setSyncStatus('offline', 'Offline'); return false; }
 }
 
 function scheduleWrite() {
