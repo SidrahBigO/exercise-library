@@ -133,7 +133,7 @@ header {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--r-card); box-shadow: 0 12px 48px rgba(0,0,0,.6);
   display: flex; flex-direction: column; overflow: hidden;
-  user-select: none; touch-action: none; will-change: transform; cursor: grab; position: relative;
+  user-select: none; touch-action: pan-y; will-change: transform; cursor: grab; position: relative;
 }
 .card:active { cursor: grabbing; }
 .ov {
@@ -780,18 +780,26 @@ function swipe(verdict) {
 
 /* ══════════════════════ DRAG ══════════════════════ */
 function setupDrag(card) {
-  let sx=0, sy=0, cx=0, cy=0, active=false;
+  let sx=0, sy=0, cx=0, cy=0, active=false, dir=null;
   function start(e) {
     if (card.dataset.going) return;
-    active=true;
+    active=true; dir=null; cx=0; cy=0;
     const pt=e.touches?e.touches[0]:e;
-    sx=pt.clientX; sy=pt.clientY; cx=0; cy=0;
+    sx=pt.clientX; sy=pt.clientY;
     card.style.transition='none';
   }
   function move(e) {
-    if (!active) return; e.preventDefault();
+    if (!active) return;
     const pt=e.touches?e.touches[0]:e;
-    cx=pt.clientX-sx; cy=pt.clientY-sy;
+    const dx=pt.clientX-sx, dy=pt.clientY-sy;
+    // determine direction on first significant movement
+    if (!dir && (Math.abs(dx)>8 || Math.abs(dy)>8))
+      dir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    // vertical — release control so the card-scroll can scroll natively
+    if (dir==='v') { active=false; return; }
+    if (dir!=='h') return;
+    e.preventDefault();
+    cx=dx; cy=dy;
     card.style.transform=`translateX(${cx}px) translateY(${cy*.15}px) rotate(${cx*.055}deg)`;
     const ratio=Math.min(Math.abs(cx)/90,1);
     const ovA=document.getElementById('ov-a'); const ovR=document.getElementById('ov-r');
@@ -807,7 +815,7 @@ function setupDrag(card) {
     else if (cx<-75) swipe('reject');
     else { card.style.transition='transform .3s cubic-bezier(.25,.46,.45,.94)'; card.style.transform=''; }
   }
-  card.addEventListener('touchstart',start,{passive:false});
+  card.addEventListener('touchstart',start,{passive:true});
   card.addEventListener('touchmove',move,{passive:false});
   card.addEventListener('touchend',end);
   card.addEventListener('mousedown',start);
