@@ -1,1 +1,87 @@
-{}
+{
+  "colors": {
+    "primary": "#FE5C01",
+    "primaryPressed": "#E55101",
+    "secondary": "#252528",
+    "accent": "#FE5C01",
+    "background": "#101010",
+    "surface": "#1A1A1C",
+    "surfaceAlt": "#252528",
+    "text": "#FFFFFF",
+    "muted": "#8E8E93",
+    "border": "#2A2A2D",
+    "approve": "#22C55E",
+    "reject": "#EF4444",
+    "accentSoft": "#FFF1E9",
+    "_notes": {
+      "primary": "apps/mobile/src/theme.ts — canonical orange; dashboard/chat-test use #ff7a33 (lighter variant)",
+      "approve": "apps/mobile/src/theme.ts success — used for positive feedback, completion badges",
+      "reject": "apps/mobile/src/theme.ts danger — used for errors, destructive actions",
+      "accentSoft": "apps/dashboard/src/styles.css --accent-soft — tinted orange wash for active rows/messages"
+    }
+  },
+  "fonts": {
+    "heading": "Poppins_600SemiBold",
+    "display": "Poppins_700Bold",
+    "body": "Poppins_400Regular",
+    "bodyMedium": "Poppins_500Medium",
+    "brush": "PermanentMarker_400Regular",
+    "webFallback": "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+  },
+  "radius": {
+    "sm": "8px",
+    "md": "12px",
+    "card": "16px",
+    "button": "12px",
+    "badge": "999px"
+  },
+  "shadow": {
+    "card": "0 1px 3px rgba(0,0,0,0.04)",
+    "_note": "Flat elevation — dark surfaces rely on border (#2A2A2D) for definition, not shadows"
+  },
+  "spacing": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px"
+  },
+  "patterns": {
+    "button": {
+      "primary": {
+        "background": "#FE5C01",
+        "color": "#FFFFFF",
+        "borderRadius": "12px",
+        "paddingVertical": "16px",
+        "paddingHorizontal": "20px",
+        "fontFamily": "Poppins_700Bold",
+        "fontSize": "15px"
+      },
+      "ghost": {
+        "background": "transparent",
+        "color": "#8E8E93",
+        "border": "1px solid #2A2A2D",
+        "borderRadius": "12px"
+      }
+    },
+    "card": {
+      "background": "#1A1A1C",
+      "borderRadius": "16px",
+      "border": "1px solid #2A2A2D",
+      "shadow": "0 1px 3px rgba(0,0,0,0.04)",
+      "padding": "20px"
+    },
+    "badge": {
+      "background": "#252528",
+      "color": "#8E8E93",
+      "border": "1px solid #2A2A2D",
+      "borderRadius": "999px",
+      "paddingVertical": "2px",
+      "paddingHorizontal": "8px",
+      "fontSize": "11px",
+      "fontFamily": "Poppins_700Bold",
+      "textTransform": "uppercase",
+      "letterSpacing": "0.04em"
+    }
+  }
+}

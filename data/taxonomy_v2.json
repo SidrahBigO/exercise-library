@@ -1,0 +1,76 @@
+{
+  "_note": "Values confirmed against packages/shared/src/policy (audited 28 Jul 2026). age_bands and safety_flags below are the REAL backend enums, not placeholders. sport is free-text on the backend (exercises.sports) so these are just our working controlled list, not a hard enum yet. position has no backend table at all.",
+  "dimensions": {
+    "age_bands": {
+      "_note": "Maps to exercises.age_bands TEXT[] (migration 026, written but NOT YET APPLIED to the DB). Empty array on an exercise = unrestricted, visible to all bands. A non-empty array is a WHITELIST -- only those bands see it.",
+      "values": [
+        { "id": "Kids", "value": "Kids (6-9)" },
+        { "id": "Tweens", "value": "Tweens (10-12)" },
+        { "id": "Teens", "value": "Teens (13+)" }
+      ]
+    },
+    "sport": {
+      "_note": "Backend column exercises.sports already exists as free-text TEXT[], no enum behind it. This list is our proposed controlled vocabulary for the UI, not yet enforced server-side.",
+      "values": [
+        { "id": "general", "value": "General" },
+        { "id": "basketball", "value": "Basketball" },
+        { "id": "football", "value": "Football" },
+        { "id": "baseball", "value": "Baseball" },
+        { "id": "running", "value": "Running" },
+        { "id": "boxing", "value": "Boxing" },
+        { "id": "soccer", "value": "Soccer" },
+        { "id": "tennis", "value": "Tennis" },
+        { "id": "golf", "value": "Golf" }
+      ]
+    },
+    "position": {
+      "_note": "No backend table exists for this at all. Sport-scoped, deferred to a later pass. Empty for every sport below on purpose.",
+      "basketball": [], "football": [], "baseball": [], "soccer": [],
+      "boxing": [], "running": [], "tennis": [], "golf": []
+    },
+    "movement_type": {
+      "_note": "No dedicated column exists. Derivable from the existing movement_pattern/workout_roles fields already in the corpus -- may not need a new migration, just a mapping function.",
+      "values": [
+        { "id": "warmup", "value": "Warm-up" },
+        { "id": "cardio", "value": "Cardio" },
+        { "id": "strength", "value": "Strength" },
+        { "id": "mobility", "value": "Mobility" },
+        { "id": "skill_combo", "value": "Skill / Combo" }
+      ]
+    },
+    "difficulty": {
+      "_note": "Derivable from existing classification.difficultyRank already in the corpus -- likely no new column needed.",
+      "values": [
+        { "id": "beginner", "value": "Beginner" },
+        { "id": "intermediate", "value": "Intermediate" },
+        { "id": "advanced", "value": "Advanced" }
+      ]
+    },
+    "equipment": {
+      "values": [
+        { "id": "bodyweight", "value": "Bodyweight" },
+        { "id": "dumbbell", "value": "Dumbbell" },
+        { "id": "bands", "value": "Resistance Bands" }
+      ]
+    },
+    "structure": {
+      "_note": "No dedicated column. Roughly derivable from existing workout_roles (warmup/cooldown) already in the corpus.",
+      "values": [
+        { "id": "intro", "value": "Intro" },
+        { "id": "main", "value": "Main" },
+        { "id": "outro", "value": "Outro" }
+      ]
+    },
+    "safety_flags": {
+      "_note": "REAL enum from packages/shared/src/policy/policy.ts RestrictedTopic. Currently only checked against free-text chat messages (apps/backend/src/ai/coach/safety.ts) -- there is NO existing mapping from these to exercises or workouts. Tagging exercises with these is net-new plumbing, not filling in an existing gap.",
+      "values": [
+        { "id": "weight_loss", "value": "Weight Loss" },
+        { "id": "calorie_restriction", "value": "Calorie Restriction" },
+        { "id": "dieting", "value": "Dieting" },
+        { "id": "heavy_lifting", "value": "Heavy Lifting" },
+        { "id": "one_rep_max", "value": "1RM Testing" },
+        { "id": "supplements", "value": "Supplements" }
+      ]
+    }
+  }
+}
