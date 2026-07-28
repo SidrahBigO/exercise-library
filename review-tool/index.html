@@ -570,7 +570,7 @@ function buildEntry(ex, d) {
       age_bands_confirmed:     c.age_bands_confirmed  ?? null,
       sports_confirmed:        c.sports_confirmed     ?? null,
       position_confirmed:      null,
-      movement_type_confirmed: c.movement_type        ?? null,
+      movement_type_confirmed: c.movement_type?.length ? c.movement_type : null,
       difficulty_confirmed:    c.difficulty           ?? null,
       structure_confirmed:     c.structure            ?? null,
       safety_flags:            c.safety_flags         ?? []
@@ -686,7 +686,10 @@ function renderCard() {
     return chipGroup('sports', taxonomy.sport.values.filter(s=>s.id!=='general').map(s=>({id:s.id,label:s.value,on:sel.includes(s.id)})));
   }));
   scroll.appendChild(txSection('Position', () => { const n=document.createElement('span');n.className='na';n.textContent='N/A — deferred';return n; }));
-  scroll.appendChild(txSection('Movement Type', () => mkSel('mt', taxonomy.movement_type.values, tx.movement_type)));
+  scroll.appendChild(txSection('Movement Type', () => {
+    const sel = Array.isArray(tx.movement_type) ? tx.movement_type : (tx.movement_type ? [tx.movement_type] : []);
+    return chipGroup('mt', taxonomy.movement_type.values.map(m => ({id:m.id, label:m.value, on:sel.includes(m.id)})));
+  }));
   scroll.appendChild(txSection('Difficulty',    () => mkSel('df', taxonomy.difficulty.values,    tx.difficulty)));
   scroll.appendChild(txSection('Structure',     () => mkSel('st', taxonomy.structure.values,     tx.structure)));
 
@@ -740,7 +743,7 @@ function collect() {
   const chips = g => [...document.querySelectorAll(`[data-group="${g}"].on`)].map(c=>c.dataset.val);
   const sel   = id => { const e=document.getElementById('sel-'+id); return e?.value??null; };
   return { age_bands_confirmed:chips('bands'), sports_confirmed:chips('sports'), position_confirmed:null,
-           movement_type:sel('mt'), difficulty:sel('df'), structure:sel('st'), safety_flags:chips('flags') };
+           movement_type:chips('mt'), difficulty:sel('df'), structure:sel('st'), safety_flags:chips('flags') };
 }
 
 /* ══════════════════════ SWIPE ══════════════════════ */
