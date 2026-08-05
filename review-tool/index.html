@@ -158,7 +158,12 @@ header {
 .tx-label { display:block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin-bottom:7px; }
 .tx-helper { font-size: 10px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
 .na { font-size: 12px; color: var(--muted); font-style: italic; }
-.chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-group {
+  display: flex; flex-wrap: nowrap; gap: 6px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px; scrollbar-width: none;
+}
+.chip-group::-webkit-scrollbar { display: none; }
 .chip {
   padding: 5px 11px; border-radius: var(--r-badge); font-size: 11.5px; font-weight: 600;
   border: 1.5px solid var(--border); background: var(--surface-alt); color: var(--muted);
@@ -394,7 +399,23 @@ const RESULTS_PATH = 'data/reviewed-exercises.json';
 const API_BASE     = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${RESULTS_PATH}`;
 const LS_KEY       = 'ex-review-v4';
 
-let exercises = [], taxonomy = {};
+let exercises = [], allTypes = [], allSports = [];
+
+const EQUIPMENT_OPTIONS = [
+  {id:'bodyweight',value:'Bodyweight'},{id:'dumbbell',value:'Dumbbell'},{id:'bands',value:'Resistance Bands'}
+];
+const LEVEL_OPTIONS = [
+  {id:'beginner',value:'Beginner'},{id:'intermediate',value:'Intermediate'},{id:'advanced',value:'Advanced'}
+];
+const STRUCTURE_OPTIONS = [
+  {id:'warmup',value:'Warm-up'},{id:'intro',value:'Intro'},{id:'main',value:'Main'},{id:'outro',value:'Outro'}
+];
+const SPORTS_OPTIONS = [
+  {id:'basketball',value:'Basketball'},{id:'football',value:'Football'},{id:'baseball',value:'Baseball'},
+  {id:'running',value:'Running'},{id:'boxing',value:'Boxing'},{id:'soccer',value:'Soccer'},
+  {id:'tennis',value:'Tennis'},{id:'golf',value:'Golf'},{id:'swimming',value:'Swimming'},
+  {id:'rowing',value:'Rowing'},{id:'volleyball',value:'Volleyball'},{id:'rugby',value:'Rugby'}
+];
 let state = { index: 0, decisions: {} };
 let undoStack = []; // [{id, verdict, confirmed, prevIndex}]
 
@@ -449,12 +470,10 @@ function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 /* ══════════════════════ BOOT ══════════════════════ */
 async function boot() {
   try {
-    const [eRes, tRes] = await Promise.all([
-      fetch('../data/exercises.json'),
-      fetch('../data/taxonomy.json')
-    ]);
+    const eRes = await fetch('../data/exercises.json');
     exercises = await eRes.json();
-    taxonomy  = (await tRes.json()).dimensions;
+    // derive unique types from the loaded data
+    allTypes = [...new Set(exercises.flatMap(e => e.classification?.types || []))].sort();
   } catch(e) {
     document.getElementById('intro').innerHTML =
       '<p style="color:#EF4444;padding:24px;text-align:center;font-family:Poppins,sans-serif;font-size:14px">' +
@@ -501,9 +520,9 @@ async function loadFromGitHub() {
     // GitHub is always authoritative — wipe local and rebuild from GitHub
     state.decisions = {};
     for (const ex of (content.approved || []))
-      state.decisions[ex.id] = { verdict: 'approve', confirmed: ex.taxonomy || {} };
+      state.decisions[ex.id] = { verdict: 'approve', confirmed: ex.confirmed || {} };
     for (const ex of (content.rejected || []))
-      state.decisions[ex.id] = { verdict: 'reject', confirmed: ex.taxonomy || {} };
+      state.decisions[ex.id] = { verdict: 'reject', confirmed: ex.confirmed || {} };
     let maxIdx = 0;
     exercises.forEach((ex, i) => { if (state.decisions[ex.id]) maxIdx = i + 1; });
     state.index = maxIdx;
@@ -563,17 +582,15 @@ async function refreshSha() {
 function buildEntry(ex, d) {
   const c = d.confirmed || {};
   return {
-    ...ex, review_status: d.verdict === 'approve' ? 'approved' : 'rejected',
-    reviewed_at: d.reviewed_at || new Date().toISOString(),
-    taxonomy: {
-      ...ex.taxonomy,
-      age_bands_confirmed:     c.age_bands_confirmed  ?? null,
-      sports_confirmed:        c.sports_confirmed     ?? null,
-      position_confirmed:      null,
-      movement_type_confirmed: c.movement_type?.length ? c.movement_type : null,
-      difficulty_confirmed:    c.difficulty           ?? null,
-      structure_confirmed:     c.structure            ?? null,
-      safety_flags:            c.safety_flags         ?? []
+    ...ex,
+    review_status: d.verdict === 'approve' ? 'approved' : 'rejected',
+    reviewed_at:   d.reviewed_at || new Date().toISOString(),
+    confirmed: {
+      equipment: c.equipment_confirmed ?? null,
+      sports:    c.sports_confirmed    ?? null,
+      types:     c.types_confirmed     ?? null,
+      level:     c.level_confirmed     ?? null,
+      structure: c.structure_confirmed ?? null
     }
   };
 }
@@ -652,7 +669,6 @@ function doUndo() {
 function renderCard() {
   if (state.index >= exercises.length) { showDone(); return; }
   const ex   = exercises[state.index];
-  const tx   = ex.taxonomy || {};
   const wrap = document.getElementById('card-wrap');
   wrap.innerHTML = '';
 
@@ -666,7 +682,7 @@ function renderCard() {
   scroll.className = 'card-scroll';
 
   el(scroll, 'div', 'card-name', ex.name);
-  el(scroll, 'div', 'card-desc', ex.description || '');
+  el(scroll, 'div', 'card-desc', (ex.instructions && ex.instructions.overview) || '');
 
   const muscles = [...(ex.primary_muscles||[]), ...(ex.secondary_muscles||[])].slice(0,7);
   if (muscles.length) {
@@ -675,31 +691,24 @@ function renderCard() {
   }
   el(scroll, 'div', 'divider');
 
-  scroll.appendChild(txSection('Age Bands', () => {
-    const sel = tx.age_bands_suggested || [];
-    const grp = chipGroup('bands', taxonomy.age_bands.values.map(b=>({id:b.id,label:b.value,on:sel.includes(b.id)})));
-    const h   = document.createElement('div'); h.className='tx-helper'; h.textContent='No chips selected = works for everyone, all ages.';
-    const f   = document.createDocumentFragment(); f.appendChild(grp); f.appendChild(h); return f;
-  }));
-  scroll.appendChild(txSection('Sports', () => {
-    const sel = tx.sports_suggested || [];
-    return chipGroup('sports', taxonomy.sport.values.filter(s=>s.id!=='general').map(s=>({id:s.id,label:s.value,on:sel.includes(s.id)})));
-  }));
-  scroll.appendChild(txSection('Position', () => { const n=document.createElement('span');n.className='na';n.textContent='N/A — deferred';return n; }));
-  scroll.appendChild(txSection('Movement Type', () => {
-    const sel = Array.isArray(tx.movement_type) ? tx.movement_type : (tx.movement_type ? [tx.movement_type] : []);
-    return chipGroup('mt', taxonomy.movement_type.values.map(m => ({id:m.id, label:m.value, on:sel.includes(m.id)})));
-  }));
-  scroll.appendChild(txSection('Difficulty',    () => mkSel('df', taxonomy.difficulty.values,    tx.difficulty)));
-  scroll.appendChild(txSection('Structure',     () => mkSel('st', taxonomy.structure.values,     tx.structure)));
-
-  const fw = document.createElement('div'); fw.className='tx-section';
-  const fb = document.createElement('button'); fb.className='flags-btn';
-  fb.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Flag a concern<svg class="arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
-  const fbd = document.createElement('div'); fbd.className='flags-body';
-  fbd.appendChild(chipGroup('flags', taxonomy.safety_flags.values.map(f=>({id:f.id,label:f.value,on:false,cls:'flag-chip'}))));
-  fb.addEventListener('click',()=>{ fb.classList.toggle('open'); fbd.classList.toggle('open'); });
-  fw.appendChild(fb); fw.appendChild(fbd); scroll.appendChild(fw);
+  const selEq = ex.equipment || [];
+  scroll.appendChild(txSection('Equipment', () =>
+    chipGroup('equipment', EQUIPMENT_OPTIONS.map(o => ({id:o.id, label:o.value, on:selEq.includes(o.id)})))
+  ));
+  const selSp = ex.sports || [];
+  scroll.appendChild(txSection('Sports', () =>
+    chipGroup('sports', SPORTS_OPTIONS.map(s => ({id:s.id, label:s.value, on:selSp.includes(s.id)})))
+  ));
+  const selTy = (ex.classification && ex.classification.types) || [];
+  scroll.appendChild(txSection('Classification', () =>
+    chipGroup('types', allTypes.map(t => ({id:t, label:t.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()), on:selTy.includes(t)})))
+  ));
+  scroll.appendChild(txSection('Level', () =>
+    mkSel('df', LEVEL_OPTIONS, (ex.level || 'beginner').toLowerCase())
+  ));
+  scroll.appendChild(txSection('Structure', () =>
+    mkSel('st', STRUCTURE_OPTIONS, (ex.classification && ex.classification.structure) || 'main')
+  ));
   el(scroll, 'div', '', null, 'height:10px');
 
   card.appendChild(scroll);
@@ -742,8 +751,13 @@ function mkSel(id, values, current) {
 function collect() {
   const chips = g => [...document.querySelectorAll(`[data-group="${g}"].on`)].map(c=>c.dataset.val);
   const sel   = id => { const e=document.getElementById('sel-'+id); return e?.value??null; };
-  return { age_bands_confirmed:chips('bands'), sports_confirmed:chips('sports'), position_confirmed:null,
-           movement_type:chips('mt'), difficulty:sel('df'), structure:sel('st'), safety_flags:chips('flags') };
+  return {
+    equipment_confirmed: chips('equipment'),
+    sports_confirmed:    chips('sports'),
+    types_confirmed:     chips('types'),
+    level_confirmed:     sel('df'),
+    structure_confirmed: sel('st')
+  };
 }
 
 /* ══════════════════════ SWIPE ══════════════════════ */
