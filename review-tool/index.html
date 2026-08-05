@@ -159,11 +159,9 @@ header {
 .tx-helper { font-size: 10px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
 .na { font-size: 12px; color: var(--muted); font-style: italic; }
 .chip-group {
-  display: flex; flex-wrap: nowrap; gap: 6px;
-  overflow-x: auto; -webkit-overflow-scrolling: touch;
-  padding-bottom: 4px; scrollbar-width: none;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
 }
-.chip-group::-webkit-scrollbar { display: none; }
+.chip { text-align: center; }
 .chip {
   padding: 5px 11px; border-radius: var(--r-badge); font-size: 11.5px; font-weight: 600;
   border: 1.5px solid var(--border); background: var(--surface-alt); color: var(--muted);
@@ -186,15 +184,6 @@ header {
   color: var(--text); font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500;
 }
 .num-input:focus { outline: none; border-color: var(--primary); }
-.multi-sel {
-  width: 100%; border-radius: var(--r-md);
-  background: var(--surface-alt); border: 1.5px solid var(--border);
-  color: var(--text); font-family: 'Poppins', sans-serif; font-size: 12.5px;
-  overflow-y: auto;
-}
-.multi-sel option { padding: 7px 12px; background: var(--surface-alt); color: var(--muted); }
-.multi-sel option:checked { background: rgba(254,92,1,.18); color: var(--text); }
-.multi-sel:focus { outline: none; border-color: var(--primary); }
 .flags-btn {
   display: flex; align-items: center; gap: 7px; background: none; border: none;
   color: var(--muted); font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 700;
@@ -706,7 +695,7 @@ function renderCard() {
   const cl = ex.classification || {};
   const pr = ex.production    || {};
 
-  // ── CHIPS — few options, single-select where only one answer makes sense ──
+  // ── CHIPS — ≤5 options, 3 per row ──
   scroll.appendChild(txSection('Level', () =>
     chipGroup('lv', LEVEL_OPTIONS.map(o=>({id:o.id,label:o.value,on:ex.level===o.id})), true)
   ));
@@ -725,18 +714,14 @@ function renderCard() {
   scroll.appendChild(txSection('Venue', () =>
     chipGroup('venue', allSettings.map(v=>({id:v,label:toLabel(v),on:(ex.settings||[]).includes(v)})))
   ));
-  scroll.appendChild(txSection('Sports', () =>
-    chipGroup('sports', allSports.map(v=>({id:v,label:toLabel(v),on:(ex.sports||[]).includes(v)})))
-  ));
-  scroll.appendChild(txSection('Workout Role', () =>
-    chipGroup('roles', allWorkoutRoles.map(v=>({id:v,label:toLabel(v),on:(ex.workout_roles||[]).includes(v)})))
-  ));
 
-  // ── SCROLLABLE MULTI-SELECT — many options ──
-  scroll.appendChild(txSection('Primary Muscles',   () => mkMultiSel('pm', allMuscles,   ex.primary_muscles   || [])));
-  scroll.appendChild(txSection('Secondary Muscles', () => mkMultiSel('sm', allMuscles,   ex.secondary_muscles || [])));
-  scroll.appendChild(txSection('Equipment',         () => mkMultiSel('eq', allEquipment, ex.equipment         || [])));
-  scroll.appendChild(txSection('Classification',    () => mkMultiSel('ty', allTypes,     cl.types             || [])));
+  // ── DROPDOWNS — ≥6 options ──
+  scroll.appendChild(txSection('Sports',            () => mkSel('sp', allSports.map(v=>({id:v,value:toLabel(v)})),       (ex.sports||[])[0]||null)));
+  scroll.appendChild(txSection('Workout Role',      () => mkSel('wr', allWorkoutRoles.map(v=>({id:v,value:toLabel(v)})), (ex.workout_roles||[])[0]||null)));
+  scroll.appendChild(txSection('Primary Muscles',   () => mkSel('pm', allMuscles.map(v=>({id:v,value:toLabel(v)})),      (ex.primary_muscles||[])[0]||null)));
+  scroll.appendChild(txSection('Secondary Muscles', () => mkSel('sm', allMuscles.map(v=>({id:v,value:toLabel(v)})),      (ex.secondary_muscles||[])[0]||null)));
+  scroll.appendChild(txSection('Equipment',         () => mkSel('eq', allEquipment.map(v=>({id:v,value:toLabel(v)})),    (ex.equipment||[])[0]||null)));
+  scroll.appendChild(txSection('Classification',    () => mkSel('ty', allTypes.map(v=>({id:v,value:toLabel(v)})),        (cl.types||[])[0]||null)));
 
   // ── NUMBER INPUT ──
   scroll.appendChild(txSection('Minimum Age', () => {
@@ -780,19 +765,10 @@ function chipGroup(group, items, single=false) {
   });
   return grp;
 }
-function mkMultiSel(id, values, selected) {
-  const s = document.createElement('select');
-  s.className='multi-sel'; s.id='msel-'+id; s.multiple=true; s.size=Math.min(values.length, 6);
-  values.forEach(v => {
-    const o = document.createElement('option'); o.value=v; o.textContent=toLabel(v);
-    if (selected.includes(v)) o.selected=true;
-    s.appendChild(o);
-  });
-  return s;
-}
 function toLabel(s) { return s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
 function mkSel(id, values, current) {
   const s = document.createElement('select'); s.className='sel'; s.id='sel-'+id;
+  const blank = document.createElement('option'); blank.value=''; blank.textContent='— select —'; s.appendChild(blank);
   values.forEach(v => {
     const o = document.createElement('option'); o.value=v.id; o.textContent=v.value;
     if (v.id===current) o.selected=true; s.appendChild(o);
@@ -802,7 +778,7 @@ function mkSel(id, values, current) {
 function collect() {
   const chip1 = g => { const e=document.querySelector(`[data-group="${g}"].on`); return e?e.dataset.val:null; };
   const chips = g => [...document.querySelectorAll(`[data-group="${g}"].on`)].map(c=>c.dataset.val);
-  const msel  = id => { const e=document.getElementById('msel-'+id); return e?Array.from(e.selectedOptions).map(o=>o.value):[]; };
+  const sel   = id => { const e=document.getElementById('sel-'+id); return e?.value||null; };
   const num   = id => { const e=document.getElementById(id); return e?Number(e.value):null; };
   return {
     level:                   chip1('lv'),
@@ -811,12 +787,12 @@ function collect() {
     animationPriority:       chip1('ap'),
     screenFollowSuitability: chip1('sf'),
     settings:                chips('venue'),
-    sports:                  chips('sports'),
-    workout_roles:           chips('roles'),
-    primary_muscles:         msel('pm'),
-    secondary_muscles:       msel('sm'),
-    equipment:               msel('eq'),
-    types:                   msel('ty'),
+    sports:                  sel('sp'),
+    workout_roles:           sel('wr'),
+    primary_muscles:         sel('pm'),
+    secondary_muscles:       sel('sm'),
+    equipment:               sel('eq'),
+    types:                   sel('ty'),
     minimumAge:              num('inp-age')
   };
 }
