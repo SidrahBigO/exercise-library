@@ -184,6 +184,43 @@ header {
   color: var(--text); font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500;
 }
 .num-input:focus { outline: none; border-color: var(--primary); }
+
+/* ── MULTI-DROP ── */
+.multi-drop { width: 100%; }
+.multi-drop-bar {
+  width: 100%; padding: 9px 12px; border-radius: var(--r-md);
+  background: var(--surface-alt); border: 1.5px solid var(--border);
+  color: var(--text); font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; user-select: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  transition: border-color .15s;
+}
+.multi-drop-bar.open { border-color: var(--primary); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.multi-drop-bar-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.multi-drop-bar-text.placeholder { color: var(--muted); }
+.drop-arrow { flex-shrink: 0; transition: transform .2s; }
+.drop-arrow.open { transform: rotate(180deg); }
+.multi-drop-list {
+  display: none;
+  border: 1.5px solid var(--primary); border-top: none;
+  border-bottom-left-radius: var(--r-md); border-bottom-right-radius: var(--r-md);
+  background: var(--surface); overflow-y: auto; max-height: 200px;
+}
+.multi-drop-list.open { display: block; }
+.multi-drop-item {
+  padding: 9px 12px; display: flex; align-items: center; gap: 9px;
+  cursor: pointer; font-size: 12.5px; color: var(--muted);
+  border-top: 1px solid var(--border); transition: background .1s;
+}
+.multi-drop-item:first-child { border-top: none; }
+.multi-drop-item:active { background: var(--surface-alt); }
+.multi-drop-item.on { color: var(--text); }
+.mdrop-check {
+  width: 15px; height: 15px; border-radius: 3px; border: 1.5px solid var(--border);
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; color: transparent; transition: all .15s;
+}
+.multi-drop-item.on .mdrop-check { background: var(--primary); border-color: var(--primary); color: #fff; }
 .flags-btn {
   display: flex; align-items: center; gap: 7px; background: none; border: none;
   color: var(--muted); font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 700;
@@ -715,13 +752,13 @@ function renderCard() {
     chipGroup('venue', allSettings.map(v=>({id:v,label:toLabel(v),on:(ex.settings||[]).includes(v)})))
   ));
 
-  // ── DROPDOWNS — ≥6 options ──
-  scroll.appendChild(txSection('Sports',            () => mkSel('sp', allSports.map(v=>({id:v,value:toLabel(v)})),       (ex.sports||[])[0]||null)));
-  scroll.appendChild(txSection('Workout Role',      () => mkSel('wr', allWorkoutRoles.map(v=>({id:v,value:toLabel(v)})), (ex.workout_roles||[])[0]||null)));
-  scroll.appendChild(txSection('Primary Muscles',   () => mkSel('pm', allMuscles.map(v=>({id:v,value:toLabel(v)})),      (ex.primary_muscles||[])[0]||null)));
-  scroll.appendChild(txSection('Secondary Muscles', () => mkSel('sm', allMuscles.map(v=>({id:v,value:toLabel(v)})),      (ex.secondary_muscles||[])[0]||null)));
-  scroll.appendChild(txSection('Equipment',         () => mkSel('eq', allEquipment.map(v=>({id:v,value:toLabel(v)})),    (ex.equipment||[])[0]||null)));
-  scroll.appendChild(txSection('Classification',    () => mkSel('ty', allTypes.map(v=>({id:v,value:toLabel(v)})),        (cl.types||[])[0]||null)));
+  // ── MULTI-SELECT DROPDOWNS — ≥6 options, comma-separated in bar ──
+  scroll.appendChild(txSection('Sports',            () => mkMultiDrop('sp', allSports,        ex.sports            || [])));
+  scroll.appendChild(txSection('Workout Role',      () => mkMultiDrop('wr', allWorkoutRoles,  ex.workout_roles     || [])));
+  scroll.appendChild(txSection('Primary Muscles',   () => mkMultiDrop('pm', allMuscles,       ex.primary_muscles   || [])));
+  scroll.appendChild(txSection('Secondary Muscles', () => mkMultiDrop('sm', allMuscles,       ex.secondary_muscles || [])));
+  scroll.appendChild(txSection('Equipment',         () => mkMultiDrop('eq', allEquipment,     ex.equipment         || [])));
+  scroll.appendChild(txSection('Classification',    () => mkMultiDrop('ty', allTypes,         cl.types             || [])));
 
   // ── NUMBER INPUT ──
   scroll.appendChild(txSection('Minimum Age', () => {
@@ -736,6 +773,8 @@ function renderCard() {
   card.appendChild(scroll);
   wrap.appendChild(card);
   setupDrag(card);
+  // close any open multi-drop when tapping outside
+  document.addEventListener('click', closeAllDrops, {once:true});
 }
 
 function el(parent, tag, cls, text, style) {
@@ -765,7 +804,59 @@ function chipGroup(group, items, single=false) {
   });
   return grp;
 }
-function toLabel(s) { return s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
+function toLabel(s) { return s ? s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : ''; }
+function closeAllDrops() {
+  document.querySelectorAll('.multi-drop-list.open').forEach(l => {
+    l.classList.remove('open');
+    l.previousElementSibling.classList.remove('open');
+    l.previousElementSibling.querySelector('.drop-arrow')?.classList.remove('open');
+  });
+}
+function mkMultiDrop(id, values, selected) {
+  const wrap = document.createElement('div'); wrap.className='multi-drop'; wrap.id='mdrop-'+id;
+  const bar  = document.createElement('div'); bar.className='multi-drop-bar';
+  const txt  = document.createElement('span'); txt.className='multi-drop-bar-text';
+  const arr  = document.createElement('span'); arr.className='drop-arrow';
+  arr.innerHTML=`<svg width="12" height="7" viewBox="0 0 12 7" fill="none"><path d="M1 1l5 5 5-5" stroke="#8E8E93" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  bar.appendChild(txt); bar.appendChild(arr); wrap.appendChild(bar);
+  const list = document.createElement('div'); list.className='multi-drop-list'; wrap.appendChild(list);
+
+  const state = new Set(selected.filter(Boolean));
+
+  function updateBar() {
+    const vals = [...state];
+    if (vals.length) { txt.textContent = vals.map(toLabel).join(', '); txt.classList.remove('placeholder'); }
+    else             { txt.textContent = '— select —'; txt.classList.add('placeholder'); }
+  }
+
+  values.forEach(v => {
+    const item  = document.createElement('div'); item.className='multi-drop-item'+(state.has(v)?' on':'');
+    const check = document.createElement('div'); check.className='mdrop-check'; check.textContent='✓';
+    const lbl   = document.createElement('span'); lbl.textContent=toLabel(v);
+    item.appendChild(check); item.appendChild(lbl);
+    item.addEventListener('click', e => {
+      e.stopPropagation();
+      state.has(v) ? (state.delete(v), item.classList.remove('on')) : (state.add(v), item.classList.add('on'));
+      updateBar();
+    });
+    list.appendChild(item);
+  });
+
+  bar.addEventListener('click', e => {
+    e.stopPropagation();
+    const opening = !list.classList.contains('open');
+    // close any other open drops
+    document.querySelectorAll('.multi-drop-list.open').forEach(l => {
+      l.classList.remove('open'); l.previousElementSibling.classList.remove('open');
+      l.previousElementSibling.querySelector('.drop-arrow')?.classList.remove('open');
+    });
+    if (opening) { list.classList.add('open'); bar.classList.add('open'); arr.classList.add('open'); }
+  });
+
+  wrap.getValues = () => [...state];
+  updateBar();
+  return wrap;
+}
 function mkSel(id, values, current) {
   const s = document.createElement('select'); s.className='sel'; s.id='sel-'+id;
   const blank = document.createElement('option'); blank.value=''; blank.textContent='— select —'; s.appendChild(blank);
@@ -778,7 +869,7 @@ function mkSel(id, values, current) {
 function collect() {
   const chip1 = g => { const e=document.querySelector(`[data-group="${g}"].on`); return e?e.dataset.val:null; };
   const chips = g => [...document.querySelectorAll(`[data-group="${g}"].on`)].map(c=>c.dataset.val);
-  const sel   = id => { const e=document.getElementById('sel-'+id); return e?.value||null; };
+  const mdrop = id => { const e=document.getElementById('mdrop-'+id); return e?.getValues()||[]; };
   const num   = id => { const e=document.getElementById(id); return e?Number(e.value):null; };
   return {
     level:                   chip1('lv'),
@@ -787,12 +878,12 @@ function collect() {
     animationPriority:       chip1('ap'),
     screenFollowSuitability: chip1('sf'),
     settings:                chips('venue'),
-    sports:                  sel('sp'),
-    workout_roles:           sel('wr'),
-    primary_muscles:         sel('pm'),
-    secondary_muscles:       sel('sm'),
-    equipment:               sel('eq'),
-    types:                   sel('ty'),
+    sports:                  mdrop('sp'),
+    workout_roles:           mdrop('wr'),
+    primary_muscles:         mdrop('pm'),
+    secondary_muscles:       mdrop('sm'),
+    equipment:               mdrop('eq'),
+    types:                   mdrop('ty'),
     minimumAge:              num('inp-age')
   };
 }
