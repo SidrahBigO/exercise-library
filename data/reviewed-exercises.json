@@ -1,5 +1,80 @@
 {
-  "last_synced": "2026-07-28T12:06:52.742Z",
-  "approved": [],
+  "last_synced": "2026-08-05T12:42:09.452Z",
+  "approved": [
+    {
+      "id": "aicon-ex-0001",
+      "slug": "3-legged-dog",
+      "name": "3-Legged Dog",
+      "level": "beginner",
+      "primary_muscles": [
+        "hamstrings"
+      ],
+      "secondary_muscles": [
+        "core",
+        "glutes"
+      ],
+      "equipment": [
+        "bodyweight"
+      ],
+      "settings": [],
+      "workout_roles": [],
+      "sports": [
+        "golf"
+      ],
+      "instructions": {
+        "overview": "A beginner-friendly full-body yoga exercise that primarily targets the shoulders, core, and hips while improving hip mobility, enhancing spinal alignment, and building overall balance and stability.",
+        "form": [],
+        "proTips": [],
+        "commonMistakes": []
+      },
+      "classification": {
+        "types": [
+          "mobility"
+        ],
+        "structure": "main",
+        "contentType": "exercise",
+        "minimumAge": 10
+      },
+      "production": {
+        "deliveryMode": "video",
+        "animationPriority": "low",
+        "screenFollowSuitability": false,
+        "source": "aicon",
+        "excluded": false
+      },
+      "demands": {},
+      "prescription": {},
+      "media": {
+        "image": {
+          "path": null,
+          "available": false
+        },
+        "videoPortrait": {
+          "path": null,
+          "available": false
+        },
+        "videoLandscape": {
+          "path": null,
+          "available": false
+        }
+      },
+      "taxonomy": {},
+      "review_status": "approved",
+      "reviewed_at": "2026-08-05T12:42:01.446Z",
+      "confirmed": {
+        "equipment": [
+          "bodyweight"
+        ],
+        "sports": [
+          "golf"
+        ],
+        "types": [
+          "mobility"
+        ],
+        "level": "beginner",
+        "structure": "main"
+      }
+    }
+  ],
   "rejected": []
 }
