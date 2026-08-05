@@ -180,6 +180,12 @@ header {
   background-repeat: no-repeat; background-position: right 12px center;
 }
 .sel:focus { outline: none; border-color: var(--primary); }
+.num-input {
+  width: 90px; padding: 9px 12px; border-radius: var(--r-md);
+  background: var(--surface-alt); border: 1.5px solid var(--border);
+  color: var(--text); font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500;
+}
+.num-input:focus { outline: none; border-color: var(--primary); }
 .flags-btn {
   display: flex; align-items: center; gap: 7px; background: none; border: none;
   color: var(--muted); font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 700;
@@ -399,23 +405,13 @@ const RESULTS_PATH = 'data/reviewed-exercises.json';
 const API_BASE     = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${RESULTS_PATH}`;
 const LS_KEY       = 'ex-review-v4';
 
-let exercises = [], allTypes = [], allSports = [];
+let exercises = [], allMuscles = [], allEquipment = [], allSettings = [], allWorkoutRoles = [], allSports = [], allTypes = [];
 
-const EQUIPMENT_OPTIONS = [
-  {id:'bodyweight',value:'Bodyweight'},{id:'dumbbell',value:'Dumbbell'},{id:'bands',value:'Resistance Bands'}
-];
-const LEVEL_OPTIONS = [
-  {id:'beginner',value:'Beginner'},{id:'intermediate',value:'Intermediate'},{id:'advanced',value:'Advanced'}
-];
-const STRUCTURE_OPTIONS = [
-  {id:'warmup',value:'Warm-up'},{id:'intro',value:'Intro'},{id:'main',value:'Main'},{id:'outro',value:'Outro'}
-];
-const SPORTS_OPTIONS = [
-  {id:'basketball',value:'Basketball'},{id:'football',value:'Football'},{id:'baseball',value:'Baseball'},
-  {id:'running',value:'Running'},{id:'boxing',value:'Boxing'},{id:'soccer',value:'Soccer'},
-  {id:'tennis',value:'Tennis'},{id:'golf',value:'Golf'},{id:'swimming',value:'Swimming'},
-  {id:'rowing',value:'Rowing'},{id:'volleyball',value:'Volleyball'},{id:'rugby',value:'Rugby'}
-];
+const LEVEL_OPTIONS        = [{id:'foundational',value:'Foundational'},{id:'developing',value:'Developing'},{id:'advanced',value:'Advanced'}];
+const STRUCTURE_OPTIONS    = [{id:'warmup',value:'Warm-up'},{id:'main',value:'Main'},{id:'cooldown',value:'Cooldown'}];
+const DELIVERY_OPTIONS     = [{id:'animation',value:'Animation'},{id:'live_video',value:'Live Video'},{id:'both',value:'Both'}];
+const PRIORITY_OPTIONS     = [{id:'P1',value:'P1'},{id:'P2',value:'P2'},{id:'P3',value:'P3'}];
+const SCREEN_FOLLOW_OPTIONS= [{id:'high',value:'High'},{id:'medium',value:'Medium'},{id:'low',value:'Low'}];
 let state = { index: 0, decisions: {} };
 let undoStack = []; // [{id, verdict, confirmed, prevIndex}]
 
@@ -471,9 +467,13 @@ function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 async function boot() {
   try {
     const eRes = await fetch('../data/exercises.json');
-    exercises = await eRes.json();
-    // derive unique types from the loaded data
-    allTypes = [...new Set(exercises.flatMap(e => e.classification?.types || []))].sort();
+    exercises     = await eRes.json();
+    allMuscles     = [...new Set([...exercises.flatMap(e=>e.primary_muscles||[]),...exercises.flatMap(e=>e.secondary_muscles||[])])].sort();
+    allEquipment   = [...new Set(exercises.flatMap(e=>e.equipment||[]))].sort();
+    allSettings    = [...new Set(exercises.flatMap(e=>e.settings||[]))].sort();
+    allWorkoutRoles= [...new Set(exercises.flatMap(e=>e.workout_roles||[]))].sort();
+    allSports      = [...new Set(exercises.flatMap(e=>e.sports||[]))].sort();
+    allTypes       = [...new Set(exercises.flatMap(e=>e.classification?.types||[]))].sort();
   } catch(e) {
     document.getElementById('intro').innerHTML =
       '<p style="color:#EF4444;padding:24px;text-align:center;font-family:Poppins,sans-serif;font-size:14px">' +
@@ -586,11 +586,19 @@ function buildEntry(ex, d) {
     review_status: d.verdict === 'approve' ? 'approved' : 'rejected',
     reviewed_at:   d.reviewed_at || new Date().toISOString(),
     confirmed: {
-      equipment: c.equipment_confirmed ?? null,
-      sports:    c.sports_confirmed    ?? null,
-      types:     c.types_confirmed     ?? null,
-      level:     c.level_confirmed     ?? null,
-      structure: c.structure_confirmed ?? null
+      primary_muscles:         c.primary_muscles         ?? null,
+      secondary_muscles:       c.secondary_muscles       ?? null,
+      equipment:               c.equipment               ?? null,
+      settings:                c.settings                ?? null,
+      workout_roles:           c.workout_roles           ?? null,
+      sports:                  c.sports                  ?? null,
+      types:                   c.types                   ?? null,
+      level:                   c.level                   ?? null,
+      structure:               c.structure               ?? null,
+      deliveryMode:            c.deliveryMode            ?? null,
+      animationPriority:       c.animationPriority       ?? null,
+      screenFollowSuitability: c.screenFollowSuitability ?? null,
+      minimumAge:              c.minimumAge              ?? null
     }
   };
 }
@@ -684,31 +692,44 @@ function renderCard() {
   el(scroll, 'div', 'card-name', ex.name);
   el(scroll, 'div', 'card-desc', (ex.instructions && ex.instructions.overview) || '');
 
-  const muscles = [...(ex.primary_muscles||[]), ...(ex.secondary_muscles||[])].slice(0,7);
-  if (muscles.length) {
-    const mrow = el(scroll, 'div', 'muscles');
-    muscles.forEach(m => el(mrow, 'span', 'mc', m.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())));
-  }
   el(scroll, 'div', 'divider');
 
-  const selEq = ex.equipment || [];
+  const cl  = ex.classification || {};
+  const pr  = ex.production    || {};
+
+  scroll.appendChild(txSection('Primary Muscles', () =>
+    chipGroup('pm', allMuscles.map(m => ({id:m, label:toLabel(m), on:(ex.primary_muscles||[]).includes(m)})))
+  ));
+  scroll.appendChild(txSection('Secondary Muscles', () =>
+    chipGroup('sm', allMuscles.map(m => ({id:m, label:toLabel(m), on:(ex.secondary_muscles||[]).includes(m)})))
+  ));
   scroll.appendChild(txSection('Equipment', () =>
-    chipGroup('equipment', EQUIPMENT_OPTIONS.map(o => ({id:o.id, label:o.value, on:selEq.includes(o.id)})))
+    chipGroup('equipment', allEquipment.map(v => ({id:v, label:toLabel(v), on:(ex.equipment||[]).includes(v)})))
   ));
-  const selSp = ex.sports || [];
+  scroll.appendChild(txSection('Venue', () =>
+    chipGroup('venue', allSettings.map(v => ({id:v, label:toLabel(v), on:(ex.settings||[]).includes(v)})))
+  ));
+  scroll.appendChild(txSection('Workout Role', () =>
+    chipGroup('roles', allWorkoutRoles.map(v => ({id:v, label:toLabel(v), on:(ex.workout_roles||[]).includes(v)})))
+  ));
   scroll.appendChild(txSection('Sports', () =>
-    chipGroup('sports', SPORTS_OPTIONS.map(s => ({id:s.id, label:s.value, on:selSp.includes(s.id)})))
+    chipGroup('sports', allSports.map(v => ({id:v, label:toLabel(v), on:(ex.sports||[]).includes(v)})))
   ));
-  const selTy = (ex.classification && ex.classification.types) || [];
   scroll.appendChild(txSection('Classification', () =>
-    chipGroup('types', allTypes.map(t => ({id:t, label:t.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()), on:selTy.includes(t)})))
+    chipGroup('types', allTypes.map(v => ({id:v, label:toLabel(v), on:(cl.types||[]).includes(v)})))
   ));
-  scroll.appendChild(txSection('Level', () =>
-    mkSel('df', LEVEL_OPTIONS, (ex.level || 'beginner').toLowerCase())
-  ));
-  scroll.appendChild(txSection('Structure', () =>
-    mkSel('st', STRUCTURE_OPTIONS, (ex.classification && ex.classification.structure) || 'main')
-  ));
+  scroll.appendChild(txSection('Level',            () => mkSel('lv', LEVEL_OPTIONS,         ex.level         || 'foundational')));
+  scroll.appendChild(txSection('Structure',         () => mkSel('st', STRUCTURE_OPTIONS,     cl.structure     || 'main')));
+  scroll.appendChild(txSection('Delivery Mode',     () => mkSel('dm', DELIVERY_OPTIONS,      pr.deliveryMode  || 'animation')));
+  scroll.appendChild(txSection('Anim Priority',     () => mkSel('ap', PRIORITY_OPTIONS,      pr.animationPriority || null)));
+  scroll.appendChild(txSection('Screen-Follow',     () => mkSel('sf', SCREEN_FOLLOW_OPTIONS, pr.screenFollowSuitability || null)));
+  scroll.appendChild(txSection('Minimum Age', () => {
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.className = 'num-input'; inp.id = 'inp-age';
+    inp.min = 0; inp.max = 18;
+    inp.value = cl.minimumAge != null ? cl.minimumAge : 0;
+    return inp;
+  }));
   el(scroll, 'div', '', null, 'height:10px');
 
   card.appendChild(scroll);
@@ -740,6 +761,7 @@ function chipGroup(group, items) {
   });
   return grp;
 }
+function toLabel(s) { return s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
 function mkSel(id, values, current) {
   const s = document.createElement('select'); s.className='sel'; s.id='sel-'+id;
   values.forEach(v => {
@@ -751,12 +773,21 @@ function mkSel(id, values, current) {
 function collect() {
   const chips = g => [...document.querySelectorAll(`[data-group="${g}"].on`)].map(c=>c.dataset.val);
   const sel   = id => { const e=document.getElementById('sel-'+id); return e?.value??null; };
+  const num   = id => { const e=document.getElementById(id); return e ? Number(e.value) : null; };
   return {
-    equipment_confirmed: chips('equipment'),
-    sports_confirmed:    chips('sports'),
-    types_confirmed:     chips('types'),
-    level_confirmed:     sel('df'),
-    structure_confirmed: sel('st')
+    primary_muscles:         chips('pm'),
+    secondary_muscles:       chips('sm'),
+    equipment:               chips('equipment'),
+    settings:                chips('venue'),
+    workout_roles:           chips('roles'),
+    sports:                  chips('sports'),
+    types:                   chips('types'),
+    level:                   sel('lv'),
+    structure:               sel('st'),
+    deliveryMode:            sel('dm'),
+    animationPriority:       sel('ap'),
+    screenFollowSuitability: sel('sf'),
+    minimumAge:              num('inp-age')
   };
 }
 
