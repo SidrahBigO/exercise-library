@@ -555,9 +555,9 @@ async function loadFromGitHub() {
     // GitHub is always authoritative — wipe local and rebuild from GitHub
     state.decisions = {};
     for (const ex of (content.approved || []))
-      state.decisions[ex.id] = { verdict: 'approve', confirmed: ex.confirmed || {} };
+      state.decisions[ex.id] = { verdict: 'approve', confirmed: taxToConfirmed(ex.taxonomy) };
     for (const ex of (content.rejected || []))
-      state.decisions[ex.id] = { verdict: 'reject', confirmed: ex.confirmed || {} };
+      state.decisions[ex.id] = { verdict: 'reject',  confirmed: taxToConfirmed(ex.taxonomy) };
     let maxIdx = 0;
     exercises.forEach((ex, i) => { if (state.decisions[ex.id]) maxIdx = i + 1; });
     state.index = maxIdx;
@@ -620,20 +620,20 @@ function buildEntry(ex, d) {
     ...ex,
     review_status: d.verdict === 'approve' ? 'approved' : 'rejected',
     reviewed_at:   d.reviewed_at || new Date().toISOString(),
-    confirmed: {
-      primary_muscles:         c.primary_muscles         ?? null,
-      secondary_muscles:       c.secondary_muscles       ?? null,
-      equipment:               c.equipment               ?? null,
-      settings:                c.settings                ?? null,
-      workout_roles:           c.workout_roles           ?? null,
-      sports:                  c.sports                  ?? null,
-      types:                   c.types                   ?? null,
-      level:                   c.level                   ?? null,
-      structure:               c.structure               ?? null,
-      deliveryMode:            c.deliveryMode            ?? null,
-      animationPriority:       c.animationPriority       ?? null,
-      screenFollowSuitability: c.screenFollowSuitability ?? null,
-      minimumAge:              c.minimumAge              ?? null
+    taxonomy: {
+      confirmed_level:            c.level                   ?? null,
+      confirmed_structure:        c.structure               ?? null,
+      confirmed_delivery_mode:    c.deliveryMode            ?? null,
+      confirmed_anim_priority:    c.animationPriority       ?? null,
+      confirmed_screen_follow:    c.screenFollowSuitability ?? null,
+      confirmed_venue:            c.settings                ?? null,
+      confirmed_sports:           c.sports                  ?? null,
+      confirmed_workout_roles:    c.workout_roles           ?? null,
+      confirmed_primary_muscles:  c.primary_muscles         ?? null,
+      confirmed_secondary_muscles:c.secondary_muscles       ?? null,
+      confirmed_equipment:        c.equipment               ?? null,
+      confirmed_types:            c.types                   ?? null,
+      confirmed_minimum_age:      c.minimumAge              ?? null
     }
   };
 }
@@ -805,6 +805,24 @@ function chipGroup(group, items, single=false) {
   return grp;
 }
 function toLabel(s) { return s ? s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : ''; }
+function taxToConfirmed(tx) {
+  if (!tx) return {};
+  return {
+    level:                   tx.confirmed_level             ?? null,
+    structure:               tx.confirmed_structure         ?? null,
+    deliveryMode:            tx.confirmed_delivery_mode     ?? null,
+    animationPriority:       tx.confirmed_anim_priority     ?? null,
+    screenFollowSuitability: tx.confirmed_screen_follow     ?? null,
+    settings:                tx.confirmed_venue             ?? null,
+    sports:                  tx.confirmed_sports            ?? null,
+    workout_roles:           tx.confirmed_workout_roles     ?? null,
+    primary_muscles:         tx.confirmed_primary_muscles   ?? null,
+    secondary_muscles:       tx.confirmed_secondary_muscles ?? null,
+    equipment:               tx.confirmed_equipment         ?? null,
+    types:                   tx.confirmed_types             ?? null,
+    minimumAge:              tx.confirmed_minimum_age       ?? null
+  };
+}
 function closeAllDrops() {
   document.querySelectorAll('.multi-drop-list.open').forEach(l => {
     l.classList.remove('open');
