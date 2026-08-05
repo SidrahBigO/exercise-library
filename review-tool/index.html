@@ -186,6 +186,15 @@ header {
   color: var(--text); font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500;
 }
 .num-input:focus { outline: none; border-color: var(--primary); }
+.multi-sel {
+  width: 100%; border-radius: var(--r-md);
+  background: var(--surface-alt); border: 1.5px solid var(--border);
+  color: var(--text); font-family: 'Poppins', sans-serif; font-size: 12.5px;
+  overflow-y: auto;
+}
+.multi-sel option { padding: 7px 12px; background: var(--surface-alt); color: var(--muted); }
+.multi-sel option:checked { background: rgba(254,92,1,.18); color: var(--text); }
+.multi-sel:focus { outline: none; border-color: var(--primary); }
 .flags-btn {
   display: flex; align-items: center; gap: 7px; background: none; border: none;
   color: var(--muted); font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 700;
@@ -694,39 +703,46 @@ function renderCard() {
 
   el(scroll, 'div', 'divider');
 
-  const cl  = ex.classification || {};
-  const pr  = ex.production    || {};
+  const cl = ex.classification || {};
+  const pr = ex.production    || {};
 
-  scroll.appendChild(txSection('Primary Muscles', () =>
-    chipGroup('pm', allMuscles.map(m => ({id:m, label:toLabel(m), on:(ex.primary_muscles||[]).includes(m)})))
+  // ── CHIPS — few options, single-select where only one answer makes sense ──
+  scroll.appendChild(txSection('Level', () =>
+    chipGroup('lv', LEVEL_OPTIONS.map(o=>({id:o.id,label:o.value,on:ex.level===o.id})), true)
   ));
-  scroll.appendChild(txSection('Secondary Muscles', () =>
-    chipGroup('sm', allMuscles.map(m => ({id:m, label:toLabel(m), on:(ex.secondary_muscles||[]).includes(m)})))
+  scroll.appendChild(txSection('Structure', () =>
+    chipGroup('st', STRUCTURE_OPTIONS.map(o=>({id:o.id,label:o.value,on:cl.structure===o.id})), true)
   ));
-  scroll.appendChild(txSection('Equipment', () =>
-    chipGroup('equipment', allEquipment.map(v => ({id:v, label:toLabel(v), on:(ex.equipment||[]).includes(v)})))
+  scroll.appendChild(txSection('Delivery Mode', () =>
+    chipGroup('dm', DELIVERY_OPTIONS.map(o=>({id:o.id,label:o.value,on:pr.deliveryMode===o.id})), true)
+  ));
+  scroll.appendChild(txSection('Anim Priority', () =>
+    chipGroup('ap', PRIORITY_OPTIONS.map(o=>({id:o.id,label:o.value,on:pr.animationPriority===o.id})), true)
+  ));
+  scroll.appendChild(txSection('Screen-Follow', () =>
+    chipGroup('sf', SCREEN_FOLLOW_OPTIONS.map(o=>({id:o.id,label:o.value,on:pr.screenFollowSuitability===o.id})), true)
   ));
   scroll.appendChild(txSection('Venue', () =>
-    chipGroup('venue', allSettings.map(v => ({id:v, label:toLabel(v), on:(ex.settings||[]).includes(v)})))
-  ));
-  scroll.appendChild(txSection('Workout Role', () =>
-    chipGroup('roles', allWorkoutRoles.map(v => ({id:v, label:toLabel(v), on:(ex.workout_roles||[]).includes(v)})))
+    chipGroup('venue', allSettings.map(v=>({id:v,label:toLabel(v),on:(ex.settings||[]).includes(v)})))
   ));
   scroll.appendChild(txSection('Sports', () =>
-    chipGroup('sports', allSports.map(v => ({id:v, label:toLabel(v), on:(ex.sports||[]).includes(v)})))
+    chipGroup('sports', allSports.map(v=>({id:v,label:toLabel(v),on:(ex.sports||[]).includes(v)})))
   ));
-  scroll.appendChild(txSection('Classification', () =>
-    chipGroup('types', allTypes.map(v => ({id:v, label:toLabel(v), on:(cl.types||[]).includes(v)})))
+  scroll.appendChild(txSection('Workout Role', () =>
+    chipGroup('roles', allWorkoutRoles.map(v=>({id:v,label:toLabel(v),on:(ex.workout_roles||[]).includes(v)})))
   ));
-  scroll.appendChild(txSection('Level',            () => mkSel('lv', LEVEL_OPTIONS,         ex.level         || 'foundational')));
-  scroll.appendChild(txSection('Structure',         () => mkSel('st', STRUCTURE_OPTIONS,     cl.structure     || 'main')));
-  scroll.appendChild(txSection('Delivery Mode',     () => mkSel('dm', DELIVERY_OPTIONS,      pr.deliveryMode  || 'animation')));
-  scroll.appendChild(txSection('Anim Priority',     () => mkSel('ap', PRIORITY_OPTIONS,      pr.animationPriority || null)));
-  scroll.appendChild(txSection('Screen-Follow',     () => mkSel('sf', SCREEN_FOLLOW_OPTIONS, pr.screenFollowSuitability || null)));
+
+  // ── SCROLLABLE MULTI-SELECT — many options ──
+  scroll.appendChild(txSection('Primary Muscles',   () => mkMultiSel('pm', allMuscles,   ex.primary_muscles   || [])));
+  scroll.appendChild(txSection('Secondary Muscles', () => mkMultiSel('sm', allMuscles,   ex.secondary_muscles || [])));
+  scroll.appendChild(txSection('Equipment',         () => mkMultiSel('eq', allEquipment, ex.equipment         || [])));
+  scroll.appendChild(txSection('Classification',    () => mkMultiSel('ty', allTypes,     cl.types             || [])));
+
+  // ── NUMBER INPUT ──
   scroll.appendChild(txSection('Minimum Age', () => {
     const inp = document.createElement('input');
-    inp.type = 'number'; inp.className = 'num-input'; inp.id = 'inp-age';
-    inp.min = 0; inp.max = 18;
+    inp.type='number'; inp.className='num-input'; inp.id='inp-age';
+    inp.min=0; inp.max=18;
     inp.value = cl.minimumAge != null ? cl.minimumAge : 0;
     return inp;
   }));
@@ -750,16 +766,29 @@ function txSection(label, fn) {
   const lbl = document.createElement('span'); lbl.className='tx-label'; lbl.textContent=label;
   sec.appendChild(lbl); sec.appendChild(fn()); return sec;
 }
-function chipGroup(group, items) {
+function chipGroup(group, items, single=false) {
   const grp = document.createElement('div'); grp.className='chip-group'; grp.dataset.group=group;
   items.forEach(item => {
     const c = document.createElement('div');
-    c.className = 'chip'+(item.cls?' '+item.cls:'')+(item.on?' on':'');
+    c.className = 'chip'+(item.on?' on':'');
     c.dataset.val=item.id; c.dataset.group=group; c.textContent=item.label;
-    c.addEventListener('click',()=>c.classList.toggle('on'));
+    c.addEventListener('click',()=>{
+      if (single) { grp.querySelectorAll('.chip').forEach(ch=>ch.classList.remove('on')); c.classList.add('on'); }
+      else c.classList.toggle('on');
+    });
     grp.appendChild(c);
   });
   return grp;
+}
+function mkMultiSel(id, values, selected) {
+  const s = document.createElement('select');
+  s.className='multi-sel'; s.id='msel-'+id; s.multiple=true; s.size=Math.min(values.length, 6);
+  values.forEach(v => {
+    const o = document.createElement('option'); o.value=v; o.textContent=toLabel(v);
+    if (selected.includes(v)) o.selected=true;
+    s.appendChild(o);
+  });
+  return s;
 }
 function toLabel(s) { return s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
 function mkSel(id, values, current) {
@@ -771,22 +800,23 @@ function mkSel(id, values, current) {
   return s;
 }
 function collect() {
+  const chip1 = g => { const e=document.querySelector(`[data-group="${g}"].on`); return e?e.dataset.val:null; };
   const chips = g => [...document.querySelectorAll(`[data-group="${g}"].on`)].map(c=>c.dataset.val);
-  const sel   = id => { const e=document.getElementById('sel-'+id); return e?.value??null; };
-  const num   = id => { const e=document.getElementById(id); return e ? Number(e.value) : null; };
+  const msel  = id => { const e=document.getElementById('msel-'+id); return e?Array.from(e.selectedOptions).map(o=>o.value):[]; };
+  const num   = id => { const e=document.getElementById(id); return e?Number(e.value):null; };
   return {
-    primary_muscles:         chips('pm'),
-    secondary_muscles:       chips('sm'),
-    equipment:               chips('equipment'),
+    level:                   chip1('lv'),
+    structure:               chip1('st'),
+    deliveryMode:            chip1('dm'),
+    animationPriority:       chip1('ap'),
+    screenFollowSuitability: chip1('sf'),
     settings:                chips('venue'),
-    workout_roles:           chips('roles'),
     sports:                  chips('sports'),
-    types:                   chips('types'),
-    level:                   sel('lv'),
-    structure:               sel('st'),
-    deliveryMode:            sel('dm'),
-    animationPriority:       sel('ap'),
-    screenFollowSuitability: sel('sf'),
+    workout_roles:           chips('roles'),
+    primary_muscles:         msel('pm'),
+    secondary_muscles:       msel('sm'),
+    equipment:               msel('eq'),
+    types:                   msel('ty'),
     minimumAge:              num('inp-age')
   };
 }
